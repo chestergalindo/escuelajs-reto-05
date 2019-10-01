@@ -1,12 +1,14 @@
 const $app = document.getElementById('app');
 const $observe = document.getElementById('observe');
 const API = 'https://rickandmortyapi.com/api/character/';
-const storage = window.localStorage
+
+localStorage.clear()
 
 const getData = api => {
   fetch(api)
     .then(response => response.json())
     .then(response => {
+      localStorage.setItem('next_fetch',response.info.next)
       const characters = response.results;
       let output = characters.map(character => {
         return `
@@ -20,28 +22,22 @@ const getData = api => {
       newItem.classList.add('Items');
       newItem.innerHTML = output;
       $app.appendChild(newItem);
-      let next = response.info.next
-      console.log(next)
     })
     .catch(error => console.log(error));
 }
 
-const next_fetch = api => {
-  fetch(api)
-    .then(response => response.json())
-    .then(response => {
-      localStorage.setItem('next_fetch', response.info.next)
-      if (storage.getItem('next_fetch')) {
-        console.log(storage.getItem('next_fetch'))
-      }
-    })
-    .catch (error => console.log(error))
+async function loadData () {
+  const next_URL = localStorage.getItem('next_fetch')
+  if (next_URL === ''){
+    alert(`Ya no hay personajes...`)
+    intersectionObserver.unobserve($observe);
   }
-
-const loadData = async () => {
-    if (storage.getItem('next_fetch')){
-      await getData(API)
-    }
+  if (next_URL === null){
+    await getData(API)
+  } else {
+    await getData(next_URL)
+    console.log (next_URL)
+  }
 }
 
 const intersectionObserver = new IntersectionObserver(entries => {
